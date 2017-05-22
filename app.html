@@ -1,1 +1,10 @@
 This interface can typically be implemented by a user model class. For example, the following code shows how to implement this interface by a User ActiveRecord class:
+
+
+$idParam public property
+The session variable name used to store the value of $id.
+public string $idParam = '__id'
+$identity public property
+The identity object associated with the currently logged-in user. null is returned if the user is not logged in (not authenticated).
+public yii\web\IdentityInterface|null getIdentity ( $autoRenew = true )
+public void setIdentity ( $identity )
