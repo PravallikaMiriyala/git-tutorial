@@ -1,1 +1,72 @@
+Implementing yii\web\IdentityInterface
+The identity class must implement the yii\web\IdentityInterface which contains the following methods:
 
+findIdentity(): it looks for an instance of the identity class using the specified user ID. This method is used when you need to maintain the login status via session.
+findIdentityByAccessToken(): it looks for an instance of the identity class using the specified access token. This method is used when you need to authenticate a user by a single secret token (e.g. in a stateless RESTful application).
+getId(): it returns the ID of the user represented by this identity instance.
+getAuthKey(): it returns a key used to verify cookie-based login. The key is stored in the login cookie and will be later compared with the server-side version to make sure the login cookie is valid.
+validateAuthKey(): it implements the logic for verifying the cookie-based login key.
+If a particular method is not needed, you may implement it with an empty body. For example, if your application is a pure stateless RESTful application, you would only need to implement findIdentityByAccessToken() and getId() while leaving all other methods with an empty body.
+
+In the following example, an identity class is implemented as an Active Record class associated with the user database table.
+
+<?php
+
+use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
+
+class User extends ActiveRecord implements IdentityInterface
+{
+    public static function tableName()
+    {
+        return 'user';
+    }
+
+    /**
+     * Finds an identity by the given ID.
+     *
+     * @param string|int $id the ID to be looked for
+     * @return IdentityInterface|null the identity object that matches the given ID.
+     */
+    public static function findIdentity($id)
+    {
+        return static::findOne($id);
+    }
+
+    /**
+     * Finds an identity by the given token.
+     *
+     * @param string $token the token to be looked for
+     * @return IdentityInterface|null the identity object that matches the given token.
+     */
+    public static function findIdentityByAccessToken($token, $type = null)
+    {
+        return static::findOne(['access_token' => $token]);
+    }
+
+    /**
+     * @return int|string current user ID
+     */
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * @return string current user auth key
+     */
+    public function getAuthKey()
+    {
+        return $this->auth_key;
+    }
+
+    /**
+     * @param string $authKey
+     * @return bool if auth key is valid for current user
+     */
+    public function validateAuthKey($authKey)
+    {
+        return $this->getAuthKey() === $authKey;
+    }
+}
+As explained previously, you only need to implement getAuthKey() and validateAuthKey() if your application uses cookie-based login feature. In this case, you may use the following code to generate an auth key for each user and store it in the user table:
